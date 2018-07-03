@@ -1,91 +1,84 @@
 <?php
 
 /**
-* Pico XML Sitemap - Automatically generate a valid xml sitemap!
+* PicoXMLSitemap - Automatically generate a valid xml sitemap!
 *
-* This simple plugin will generate an XML sitemap of your Pico pages.
-* To access the sitemap, point your browser to http://example.com/?sitemap.xml
-*
-* Instructions
-* - Place the `PicoXMLSitemap.php` into your `plugins` directory.
-* - Place `$config['PicoXMLSitemap.enabled'] = true;` in your `config/config.php`
-* - Browse to `http://yoursite.com/?sitemap.xml` or
-*   `http://yoursite.com/sitemap.xml` if you have mod_rewrite enabled.
-* - Take a break, your work is done!
+* This simple plugin will generate an XML sitemap of your Pico website.
+* To access the sitemap,
+* point your browser to `http://yoursite.com/?sitemap.xml` 
+* or `http://yoursite.com/sitemap.xml` if you have mod_rewrite enabled. 
 *
 * @author Dave Kinsella
 * @link https://github.com/Techn0tic/Pico_Sitemap
 * @license http://opensource.org/licenses/MIT
 * @version 1.0
+* 
+* @author Brice Boucard
+* @link https://github.com/bricebou/PicoXMLSitemap
+* @license https://bricebou.mit-license.org/
+* @version 2.0 
+*
 */
 class PicoXMLSitemap extends AbstractPicoPlugin
 {
-    /**
-    * Is Sitemap
-    *
-    * @var boolean is user requesting the sitemap?
-    */
-    private $is_sitemap = false;
+    const API_VERSION = 2;
+    protected $enabled = null;
 
-    /**
-    * Triggered after Pico has evaluated the request URL
-    *
-    * @see    Pico::getRequestUrl()
-    * @param  string &$url part of the URL describing the requested contents
-    * @return void
-    */
+    private $is_sitemap = false;
+    private $excluded_url = array();
+
+    public function onConfigLoaded(array &$config)
+    {
+        if (isset($config['pico_sitemap']['url']) && $config['pico_sitemap']['url'] != "")
+        {
+            $this->pico_sitemap_url = $config['pico_sitemap']['url'];
+        }
+        else
+            $this->pico_sitemap_url = "sitemap.xml";
+
+        if (isset($config['pico_sitemap']['excluded_url']) && is_array($config['pico_sitemap']['excluded_url']))
+        {
+            // $this->excluded_url = $config['pico_sitemap']['excluded_url'];
+
+            $this->excluded_url = preg_filter('/^/', $config['base_url'], $config['pico_sitemap']['excluded_url']);
+        }
+    }
+
     public function onRequestUrl(&$url)
     {
         // Are we requesting the sitemep?
-        if($url == 'sitemap.xml') {
+        if($url == $this->pico_sitemap_url) {
             //We are looking for the sitemap!
             $this->is_sitemap = true;
         }
     }
 
-    /**
-    * Triggered after Pico has read all known pages
-    *
-    * See {@link DummyPlugin::onSinglePageLoaded()} for details about the
-    * structure of the page data.
-    *
-    * @see    Pico::getPages()
-    * @see    Pico::getCurrentPage()
-    * @see    Pico::getPreviousPage()
-    * @see    Pico::getNextPage()
-    * @param  array &$pages        data of all known pages
-    * @param  array &$currentPage  data of the page being served
-    * @param  array &$previousPage data of the previous page
-    * @param  array &$nextPage     data of the next page
-    * @return void
-    */
-    public function onPagesLoaded(&$pages, &$currentPage, &$previousPage, &$nextPage)
+    public function onPagesLoaded(&$pages)
     {
         //Generate XML Sitemap
         if($this->is_sitemap){
             //Sitemap found, 200 OK
             header($_SERVER['SERVER_PROTOCOL'].' 200 OK');
-            //Set content-type to application/xml
-            header('Content-Type: application/xml; charset=UTF-8');
+            //Set content-type to text/xml
+            header('Content-Type: text/xml; charset=UTF-8');
             //XML Start
             $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
             //Page loop
             foreach( $pages as $page ){
-                //Page URL
-                $xml .= '<url><loc>'.$page['url'].'</loc>';
-                //Page date/last modified
-                if(!empty($page['date'])){
-                    $xml .= '<lastmod>'.date('c', $page['time']).'</lastmod>';
+                if (!in_array($page['url'], $this->excluded_url)) {
+                    //Page URL
+                    $xml .= '<url><loc>'.$page['url'].'</loc>';
+                    //Page date/last modified
+                    if(!empty($page['date'])){
+                        $xml .= '<lastmod>'.date('c', $page['time']).'</lastmod>';
+                    }
+                    $xml .= '</url>';
                 }
-                $xml .= '</url>';
             }
             //XML End
             $xml .= '</urlset>';
-            //Set content-type to text/xml
-            header('Content-Type: text/xml');
             //Show generated sitemap
             die($xml);
         }
     }
-
 }
