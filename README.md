@@ -27,7 +27,7 @@ Browse to `http://yoursite.com/?sitemap.xml` or `http://yoursite.com/sitemap.xml
 
 However, you can configure some parameters and exclude some URL from the generated sitemap. Just past these few lines into the `config/config.yml` or in a specific `.yml` file.
 
-```
+```yaml
 # Enable/Disable the plugin
 PicoXMLSitemap.enabled: true
 pico_sitemap:
