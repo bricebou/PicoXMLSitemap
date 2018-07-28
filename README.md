@@ -1,7 +1,13 @@
 PicoXMLSitemap
 ==============
 
-PicoXMLSitemap is a [Pico 2.0-compatible ][1] plugin used to automatically generate a valid [xml sitemap][2].
+<!--
+@author     Brice Boucard
+@link       https://github.com/bricebou/PicoXMLSitemap/
+@license    MIT License | http://bricebou.mit-license.org/
+-->
+
+PicoXMLSitemap is a [Pico 2][1] plugin used to automatically generate a valid [XML sitemap][2].
 
 ## Installation
 
@@ -11,7 +17,7 @@ __/!\ No matter the way you install the plugin, it's mandatory you name the plug
 
 Just move to your Pico CMS `plugins/` directory and run:
 
-```
+```bash
 git clone https://github.com/bricebou/PicoXMLSitemap
 ```
 
