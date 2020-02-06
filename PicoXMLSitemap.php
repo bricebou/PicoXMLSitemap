@@ -26,9 +26,12 @@ class PicoXMLSitemap extends AbstractPicoPlugin
 
     private $is_sitemap = false;
     private $excluded_url = array();
+    private $excluded_url_patterns = array();
 
     public function onConfigLoaded(array &$config)
     {
+
+
         if (isset($config['pico_sitemap']['url']) && $config['pico_sitemap']['url'] != "")
         {
             $this->pico_sitemap_url = $config['pico_sitemap']['url'];
@@ -42,6 +45,11 @@ class PicoXMLSitemap extends AbstractPicoPlugin
 
             $this->excluded_url = preg_filter('/^/', $config['base_url'], $config['pico_sitemap']['excluded_url']);
         }
+
+        $this->excluded_url_pattern = $config['pico_sitemap']['excluded_url_pattern'];
+
+
+
     }
 
     public function onRequestUrl(&$url)
@@ -55,6 +63,23 @@ class PicoXMLSitemap extends AbstractPicoPlugin
 
     public function onPagesLoaded(&$pages)
     {
+
+        // generate excluded urls from supplied patterns
+        if (isset($this->excluded_url_pattern) && is_array($this->excluded_url_pattern))
+        {
+            $urls = [];
+            //generate a list of URLs to match pattern against
+            foreach($pages as $p){
+                $urls = array_merge($urls, array($p['url']));
+            }
+
+            //add urls that match the pattern to excluded_urls
+            foreach( $this->excluded_url_pattern as $pattern ){
+                $this->excluded_url = array_merge($this->excluded_url, preg_grep ($pattern , $urls));
+            }
+
+        }
+
         //Generate XML Sitemap
         if($this->is_sitemap){
             //Sitemap found, 200 OK
@@ -63,6 +88,7 @@ class PicoXMLSitemap extends AbstractPicoPlugin
             header('Content-Type: text/xml; charset=UTF-8');
             //XML Start
             $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
             //Page loop
             foreach( $pages as $page ){
                 if (!in_array($page['url'], $this->excluded_url)) {
