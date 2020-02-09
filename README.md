@@ -43,6 +43,9 @@ pico_sitemap:
   excluded_url: 
     - "tutos"
     - "tutos/Linux"
+  # Regular expression pattern to exclude from the sitemap
+  excluded_url_pattern:
+    - "#/_#"
 ```
 
 ## Note
